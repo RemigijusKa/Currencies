@@ -1,0 +1,98 @@
+import org.w3c.dom.Document;
+
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Node;
+import org.w3c.dom.Element;
+import sun.misc.FloatingDecimal;
+
+import java.text.DecimalFormat;
+import java.util.List;
+
+
+public class Parser {
+
+    public void xmlParser(Document doc) {
+        try {
+            doc.getDocumentElement().normalize();
+            XPath xPath = XPathFactory.newInstance().newXPath();
+            String expression = "/FxRates/FxRate";
+            NodeList nodeList = (NodeList) xPath.compile(expression).evaluate(
+                    doc, XPathConstants.NODESET);
+
+            for (int i = 0; i < nodeList.getLength(); i++) {
+                Node nNode = nodeList.item(i);
+                System.out.println("\nCurrent Element :" + nNode.getNodeName());
+
+                if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+                    Element eElement = (Element) nNode;
+                    System.out.println("Type : "
+                            + eElement
+                            .getElementsByTagName("Tp")
+                            .item(0)
+                            .getTextContent());
+                    System.out.println("Date : "
+                            + eElement
+                            .getElementsByTagName("Dt")
+                            .item(0)
+                            .getTextContent());
+                    System.out.println("Currency code : "
+                            + eElement
+                            .getElementsByTagName("Ccy")
+                            .item(0)
+                            .getTextContent());
+                    System.out.println("Rate : "
+                            + eElement
+                            .getElementsByTagName("Amt")
+                            .item(0)
+                            .getTextContent());
+                    System.out.println("Currency code : "
+                            + eElement
+                            .getElementsByTagName("Ccy")
+                            .item(1)
+                            .getTextContent());
+                    System.out.println("Rate : "
+                            + eElement
+                            .getElementsByTagName("Amt")
+                            .item(1)
+                            .getTextContent());
+                }
+            }
+        } catch (XPathExpressionException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public Double currencyChangeRate(Document doc) {
+        try {
+            doc.getDocumentElement().normalize();
+            XPath xPath = XPathFactory.newInstance().newXPath();
+            String expression = "/FxRates/FxRate";
+            NodeList nodeList = (NodeList) xPath.compile(expression).evaluate(
+                    doc, XPathConstants.NODESET);
+
+            Node lastElement = nodeList.item(0);
+            Node firstElement = nodeList.item(nodeList.getLength() - 1);
+            double lastRate=0;
+            double firstRate=0;
+
+            if (lastElement.getNodeType() == Node.ELEMENT_NODE) {
+                Element eElement = (Element) lastElement;
+            lastRate = Float.parseFloat (eElement.getElementsByTagName("Amt").item(1).getTextContent());
+            }
+            if (firstElement.getNodeType() == Node.ELEMENT_NODE) {
+                Element eElement = (Element) firstElement;
+                firstRate = Float.parseFloat (eElement.getElementsByTagName("Amt").item(1).getTextContent());
+            }
+            return 100*(lastRate-firstRate)/firstRate;
+        } catch (XPathExpressionException e) {
+            System.out.println(e);
+        }
+        return null;
+    }
+}
