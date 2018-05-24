@@ -1,32 +1,38 @@
-package EisGroup;
+import org.w3c.dom.Document;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.HttpClientBuilder;
-
-
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
-
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
 
 public class RequestService {
-    private final String USER_AGENT = "Mozilla/5.0";
+
     private final String SERVER = "http://old.lb.lt/webservices/fxrates/FxRates.asmx/getFxRatesForCurrency?";
 
-    public void sendGet(String type, String currencyCode, String dateFrom, String dateTo) throws Exception {
-        //                http://old.lb.lt/webservices/fxrates/FxRates.asmx/getFxRatesForCurrency?tp=EU&ccy=CNY&dtFrom=2018-05-01&dtTo=2018-05-08
+    public Document sendRequest(String type, String currencyCode, String dateFrom, String dateTo) throws Exception {
+
         String url = SERVER + "tp=" + type + "&ccy=" + currencyCode + "&dtFrom=" + dateFrom + "&dtTo=" + dateTo;
-        HttpClient client = HttpClientBuilder.create().build();
-        HttpGet request = new HttpGet(url);
-        HttpResponse response = client.execute(request);
-        try {
-            SAXParserFactory factory = SAXParserFactory.newInstance();
-            SAXParser saxParser = factory.newSAXParser();
-            XmlHandler xmlHandler = new XmlHandler();
-            saxParser.parse(url, xmlHandler);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        URLConnection con = new URL(url).openConnection();
+        con.addRequestProperty("Accept", "application/xml");
+        InputStream is = con.getInputStream();
+        return createDocument(is);
     }
+
+    public static Document createDocument(InputStream is) {
+        DocumentBuilderFactory domFactory;
+        DocumentBuilder builder;
+
+        try {
+            domFactory = DocumentBuilderFactory.newInstance();
+            domFactory.setValidating(false);
+            domFactory.setNamespaceAware(false);
+            builder = domFactory.newDocumentBuilder();
+            return builder.parse(is);
+        } catch (Exception ex) {
+            System.out.println("unable to load XML: " + ex);
+        }
+        return null;
+    }
+
 }
